@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import ReorderableGrid, { type Widget } from "./components/ReorderableGrid";
+import LineChart from "./components/LineChart";
 import {
     BrowserRouter,
     Routes,
@@ -86,6 +87,7 @@ function Card({ className = "", children }: React.PropsWithChildren<{ className?
 }
 
 function DashboardPage() {
+    // KPI widgets (drag-to-reorder)
     const widgets: Widget[] = useMemo(
         () => [
             {
@@ -132,6 +134,17 @@ function DashboardPage() {
         []
     );
 
+    // Demo line series (30 days)
+    const series = useMemo(() => {
+        const now = Date.now();
+        return Array.from({ length: 30 }, (_, i) => {
+            const t = now - (29 - i) * 24 * 60 * 60 * 1000;
+            const base = 120000 + i * 1200;
+            const noise = (Math.random() - 0.5) * 3000;
+            return { t, value: Math.max(10000, base + noise) };
+        });
+    }, []);
+
     return (
         <section className="space-y-6">
             <h1 className="text-2xl font-semibold">Overview</h1>
@@ -139,10 +152,19 @@ function DashboardPage() {
             {/* Drag-to-reorder KPI widgets */}
             <ReorderableGrid initial={widgets} storageKey="kpi-order-v1" />
 
-            <div className="rounded-xl border border-[color:var(--border)] bg-[var(--elev-1)] p-6">
-                <p className="text-sm text-[color:var(--muted)]">
-                    Replace this placeholder with your LineChart and BarChart components later.
-                </p>
+            {/* Charts area */}
+            <div className="grid gap-6 lg:grid-cols-3">
+                <Card className="p-4 lg:col-span-2">
+                    <h2 className="mb-3 text-sm font-medium text-[color:var(--muted)]">Revenue</h2>
+                    <LineChart data={series} height={260} />
+                </Card>
+
+                <Card className="p-4">
+                    <h2 className="mb-3 text-sm font-medium text-[color:var(--muted)]">Notes</h2>
+                    <p className="text-sm text-[color:var(--muted)]">
+                        এখানে ফিল্টার/ব্রেকডাউন যোগ করতে পারেন।
+                    </p>
+                </Card>
             </div>
         </section>
     );

@@ -29,9 +29,7 @@ export default function ReorderableGrid({
     longPressMs?: number;
 }) {
     const [items, setItems] = useState<Widget[]>(() => initial);
-
-    // NON-NULL ref (fixes the TS mismatch)
-    const containerRef = useRef<HTMLDivElement>(null!);
+    const containerRef = useRef<HTMLDivElement>(null!); // non-null ref
 
     // Load saved order once on mount
     useEffect(() => {
@@ -57,14 +55,10 @@ export default function ReorderableGrid({
 
     return (
         <div ref={containerRef} className={className} style={{ position: "relative" }}>
-            {/* contents so items still participate in the CSS grid */}
             <Reorder.Group
                 axis="y"
                 values={items}
-                onReorder={(next) => {
-                    setItems(next);
-                    console.log("New order:", next.map((n) => n.id));
-                }}
+                onReorder={setItems}
                 className="contents"
             >
                 {items.map((item) => (
@@ -87,7 +81,7 @@ function DraggableItem({
 }: {
     item: Widget;
     longPressMs: number;
-    containerRef: React.RefObject<HTMLDivElement>; // expects non-nullable ref
+    containerRef: React.RefObject<HTMLDivElement>;
 }) {
     const controls = useDragControls();
 
@@ -145,8 +139,9 @@ function DraggableItem({
             value={item}
             as="div"
             drag
-            dragListener={true}                // DEBUG: drag anywhere on the card
-            dragConstraints={containerRef}
+            dragControls={controls}
+            dragListener={false}             // start via handle or long-press
+            dragConstraints={containerRef}   // keep inside grid
             dragElastic={0.12}
             dragMomentum={false}
             layout
@@ -156,11 +151,25 @@ function DraggableItem({
                 boxShadow: "0 12px 40px rgba(0,0,0,0.18)",
                 zIndex: 10,
             }}
-            className="relative group cursor-grab active:cursor-grabbing select-none"
+            className="relative group select-none cursor-default"
             style={{ touchAction: "manipulation" }}
+            onPointerDown={onItemPointerDown}
+            onPointerMove={onItemPointerMove}
+            onPointerUp={onItemPointerUp}
+            onPointerCancel={onItemPointerCancel}
+            onPointerLeave={onItemPointerLeave}
         >
-            {/* Handle (always visible for debug) */}
-            <div className="absolute right-2 top-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-md border border-[color:var(--border)] bg-[var(--elev-1)] text-[color:var(--muted)] shadow-sm">
+            {/* Drag handle */}
+            <button
+                data-drag-handle
+                onPointerDown={(e) => {
+                    e.stopPropagation();
+                    controls.start(e);
+                }}
+                className="absolute right-2 top-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-md border border-[color:var(--border)] bg-[var(--elev-1)] text-[color:var(--muted)] opacity-0 shadow-sm transition-opacity group-hover:opacity-100 cursor-grab active:cursor-grabbing"
+                aria-label="Drag to reorder"
+                title="Drag to reorder"
+            >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <circle cx="7" cy="7" r="1.5" />
                     <circle cx="7" cy="12" r="1.5" />
@@ -169,7 +178,7 @@ function DraggableItem({
                     <circle cx="12" cy="12" r="1.5" />
                     <circle cx="12" cy="17" r="1.5" />
                 </svg>
-            </div>
+            </button>
 
             {/* Card content */}
             <div className="rounded-xl border border-[color:var(--border)] bg-[var(--elev-1)]">

@@ -1,4 +1,3 @@
-// src/theme/ThemeProvider.tsx
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, cubicBezier } from "framer-motion";
 
@@ -23,7 +22,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         document.documentElement.setAttribute("data-theme", theme);
         try { localStorage.setItem("theme", theme); } catch { }
-        setFadeKey((k) => k + 1); // triggers crossfade overlay
+        setFadeKey((k) => k + 1);
     }, [theme]);
 
     const value = useMemo<Ctx>(() => ({
@@ -40,7 +39,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
                     key={fadeKey}
                     aria-hidden
                     className="pointer-events-none fixed inset-0 z-[60]"
-                    style={{ background: "var(--bg)" }}  // new theme bg
+                    style={{ background: "var(--bg)" }}
                     initial={{ opacity: 1 }}
                     animate={{ opacity: 0 }}
                     exit={{ opacity: 0 }}
